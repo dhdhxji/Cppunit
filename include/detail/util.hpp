@@ -12,7 +12,7 @@ namespace CppUnit
             template <typename TUnit>
             struct GetBaseUnit
             {
-                using type = typename TUnit::BaseType;
+                using type = typename TUnit::BaseUnit;
             };
 
             template <typename TUnit>
@@ -44,7 +44,7 @@ namespace CppUnit
             };
 
             template <typename TUnit1, typename TUnit2>
-            struct GetCommonBaseType
+            struct GetCommonBaseUnit
             {
                 static_assert(IsUnitCompatible<TUnit1, TUnit2>::value);
                 using type = typename GetRootBaseUnit<TUnit1>::type;
@@ -77,7 +77,7 @@ namespace CppUnit
             {
             private:
                 using TargetBaseUnit = typename GetBaseUnit<TTarget>::type;
-                
+
                 struct WrapperPolicy
                 {
                     TTarget fromBase(const TUnit &base)
@@ -98,7 +98,7 @@ namespace CppUnit
             TTo unit_cast(const TFrom &unit)
             {
                 static_assert(IsUnitCompatible<TFrom, TTo>::value, "Units TFrom and TTo must have common base unit");
-                using CommonBase = typename GetCommonBaseType<TFrom, TTo>::type;
+                using CommonBase = typename GetCommonBaseUnit<TFrom, TTo>::type;
 
                 const CommonBase base = ToBaseCastRecursive<TFrom, CommonBase>::type::toBase(unit);
                 return FromBaseCastRecursive<CommonBase, TTo>::type::fromBase(base);

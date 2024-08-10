@@ -16,7 +16,7 @@ namespace CppUnit
                       typename TConvPolicy>
             struct Unit
             {
-                using BaseType = TBaseUnit;
+                using BaseUnit = TBaseUnit;
                 using UnitType = TUnit;
                 using ConvPolicy = typename TConvPolicy::Policy<TUnit>;
 
