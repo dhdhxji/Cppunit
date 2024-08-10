@@ -4,44 +4,22 @@
 #include "cppunit.hpp"
 
 using namespace CppUnit;
+struct Grams : public BaseUnit<double, Grams>{};
 
-// TODO: typename vs class
-
-
-// Check for c++ standard here
-// template <typename TUnit>
-// using BaseUnit_t = typename BaseUnit<TUnit>::type;
-
-
-
-// --------- Units Here -----------------
 struct Meters : public BaseUnit<double, Meters> {};
 
-struct Kilometers : public Unit<double, Kilometers, Meters, RatioConvPolicy<std::ratio<1000, 1>>> {};
 struct Millimeters : public Unit<double, Millimeters, Meters, RatioConvPolicy<std::ratio<1, 1000>>> {};
-
-
-// TODO: Automatic SI unit conversion (struct Megameters : public SIMegaUnit<double, Meters, Megameters>)
-
-struct MegametersConv {
-    template <typename TUnit>
-    struct Policy {
-        using BaseType_t = typename TUnit::BaseType;
-
-        static BaseType_t toBase(const TUnit &Mm) {return BaseType_t::fromValue(Mm.m_value * 1000);}
-        static TUnit fromBase(const BaseType_t &km) {return TUnit::fromValue(km.m_value / 1000);}
-    };
-};
-struct Megameters : public Unit<double, Megameters, Kilometers, MegametersConv> {};
-
-
-
-struct Grams : public BaseUnit<double, Grams>{};
+struct Kilometers : public Unit<double, Kilometers, Meters, RatioConvPolicy<std::ratio<1000, 1>>> {};
+struct Megameters : public Unit<double, Megameters, Kilometers, RatioConvPolicy<std::ratio<1000, 1>>> {};
+struct Gigameters : public Unit<double, Gigameters, Megameters, RatioConvPolicy<std::ratio<1000, 1>>> {};
 
 
 
 int main()
 {
+    Gigameters Gm{double(1)};
+    std::cout << unit_cast<Gigameters, Millimeters>(Gm) << std::endl;
+
     Millimeters mm{double(10)};
     Kilometers km1{mm};
     std::cout << "Init cast " << km1 << std::endl;

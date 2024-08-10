@@ -43,14 +43,64 @@ namespace CppUnit
             {
             };
 
+            template <typename TUnit1, typename TUnit2>
+            struct GetCommonBaseType
+            {
+                static_assert(IsUnitCompatible<TUnit1, TUnit2>::value);
+                using type = typename GetRootBaseUnit<TUnit1>::type;
+            };
+
+            template <typename TUnit, typename TTarget>
+            struct ToBaseCastRecursive
+            {
+            private:
+                using BaseUnit = typename GetBaseUnit<TUnit>::type;
+
+                struct WrapperPolicy
+                {
+                    static TTarget toBase(const TUnit &unit)
+                    {
+                        return ToBaseCastRecursive<BaseUnit, TTarget>::type::toBase(
+                            TUnit::ConvPolicy::toBase(unit));
+                    }
+                };
+
+            public:
+                using type = typename std::conditional<
+                    std::is_same<BaseUnit, TTarget>::value,
+                    typename TUnit::ConvPolicy,
+                    WrapperPolicy>::type;
+            };
+
+            template <typename TUnit, typename TTarget>
+            struct FromBaseCastRecursive
+            {
+            private:
+                using TargetBaseUnit = typename GetBaseUnit<TTarget>::type;
+                struct WrapperPolicy
+                {
+                    TTarget fromBase(const TUnit &base)
+                    {
+                        return TTarget::ConvPolicy::fromBase(
+                            FromBaseCastRecursive<TUnit, TargetBaseUnit>::type::fromBase(base));
+                    }
+                };
+
+            public:
+                using type = typename std::conditional<
+                    std::is_same<TUnit, TargetBaseUnit>::value,
+                    typename TTarget::ConvPolicy,
+                    WrapperPolicy>::type;
+            };
+
             template <typename TFrom, typename TTo>
             TTo unit_cast(const TFrom &unit)
             {
-                static_assert(IsUnitCompatible<TFrom, TTo>::value, "Units TFrom and TTo should have common base unit");
-                const typename GetBaseUnit<TFrom>::type baseUnit = TFrom::ConvPolicy::toBase(unit);
-                const TTo result = TTo::ConvPolicy::fromBase(baseUnit);
+                static_assert(IsUnitCompatible<TFrom, TTo>::value, "Units TFrom and TTo must have common base unit");
+                using CommonBase = typename GetCommonBaseType<TFrom, TTo>::type;
 
-                return result;
+                const CommonBase base = ToBaseCastRecursive<TFrom, CommonBase>::type::toBase(unit);
+                return FromBaseCastRecursive<CommonBase, TTo>::type::fromBase(base);
             }
         }
     }
