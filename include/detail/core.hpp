@@ -8,7 +8,7 @@ namespace CppUnit
 {
     namespace Detail
     {
-        namespace Base
+        namespace Core
         {
             template <typename T,
                       typename TUnit,

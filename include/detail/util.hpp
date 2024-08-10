@@ -77,6 +77,7 @@ namespace CppUnit
             {
             private:
                 using TargetBaseUnit = typename GetBaseUnit<TTarget>::type;
+                
                 struct WrapperPolicy
                 {
                     TTarget fromBase(const TUnit &base)
