@@ -2,8 +2,7 @@
 
 set -ex
 
-CXX=g++
-CARGS="-g -O0 -o testapp"
+cmake -S . -B build
+cmake --build build
 
-${CXX} ${CARGS} unit.cpp
-./testapp
+./build//testapp
