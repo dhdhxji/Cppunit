@@ -11,33 +11,37 @@ namespace CppUnit
         namespace Core
         {
             template <typename T,
-                      typename TUnit,
-                      typename TBaseUnit,
+                      template <typename> typename TUnit,
+                      template <typename> typename TBaseUnit,
                       typename TConvPolicy>
             struct Unit
             {
-                using BaseUnit = TBaseUnit;
-                using UnitType = TUnit;
-                using ConvPolicy = typename TConvPolicy::Policy<TUnit>;
+                // Small hack to make units with different data types (like a Meters<double> and Millimeters<int> compatible)
+                using BaseUnit = TBaseUnit<int>;
+                using UnitType = TUnit<int>;
+                using OwnBaseUnit = TBaseUnit<T>;
+                using OwnUnitTtype = TUnit<T>;
+                
+                using ConvPolicy = typename TConvPolicy::Policy<OwnUnitTtype>;
 
                 T m_value;
 
                 Unit() = default;
                 Unit(const T &value) : m_value(value) {}
-                Unit(const TUnit &other) : m_value(other.m_value) {}
+                Unit(const OwnUnitTtype &other) : m_value(other.m_value) {}
                 template <typename TOtherUnit>
-                Unit(const TOtherUnit &other) : m_value(Util::unit_cast<TOtherUnit, TUnit>(other).m_value) {}
+                Unit(const TOtherUnit &other) : m_value(Util::unit_cast<TOtherUnit, OwnUnitTtype>(other).m_value) {}
 
                 template <typename TOtherUnit>
-                TUnit &operator=(const TOtherUnit &other)
+                OwnUnitTtype &operator=(const TOtherUnit &other)
                 {
-                    m_value = Util::unit_cast<TOtherUnit, TUnit>(other).m_value;
+                    m_value = Util::unit_cast<TOtherUnit, OwnUnitTtype>(other).m_value;
                     return *this;
                 }
 
-                static TUnit fromValue(const T &value)
+                static OwnUnitTtype fromValue(const T &value)
                 {
-                    TUnit unit;
+                    OwnUnitTtype unit;
                     unit.m_value = value;
 
                     return unit;
@@ -46,7 +50,7 @@ namespace CppUnit
                 operator T() { return m_value; }
             };
 
-            template <typename T, typename TUnit>
+            template <typename T, template <typename> typename TUnit>
             using BaseUnit = Unit<T, TUnit, TUnit, BaseConvPolicies::ItselfConvPolicy>;
         }
     }

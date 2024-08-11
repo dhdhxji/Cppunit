@@ -4,30 +4,39 @@
 #include "cppunit.hpp"
 
 using namespace CppUnit;
-struct Grams : public BaseUnit<double, Grams>{};
+template <typename T>
+struct Grams : public BaseUnit<T, Grams>{};
 
-struct Meters : public BaseUnit<double, Meters> {};
+template <typename T>
+struct Meters : public BaseUnit<T, Meters> {};
 
-struct Millimeters : public Unit<double, Millimeters, Meters, RatioConvPolicy<std::ratio<1, 1000>>> {};
-struct Kilometers : public Unit<double, Kilometers, Meters, RatioConvPolicy<std::ratio<1000, 1>>> {};
-struct Megameters : public Unit<double, Megameters, Kilometers, RatioConvPolicy<std::ratio<1000, 1>>> {};
-struct Gigameters : public Unit<double, Gigameters, Megameters, RatioConvPolicy<std::ratio<1000, 1>>> {};
+template <typename T>
+struct Millimeters : public Unit<T, Millimeters, Meters, RatioConvPolicy<std::ratio<1, 1000>>> {};
+
+template <typename T>
+struct Kilometers : public Unit<T, Kilometers, Meters, RatioConvPolicy<std::ratio<1000, 1>>> {};
+
+template <typename T>
+struct Megameters : public Unit<T, Megameters, Kilometers, RatioConvPolicy<std::ratio<1000, 1>>> {};
+
+template <typename T>
+struct Gigameters : public Unit<T, Gigameters, Megameters, RatioConvPolicy<std::ratio<1000, 1>>> {};
 
 
 
 int main()
 {
-    Gigameters Gm{double(1)};
-    std::cout << unit_cast<Gigameters, Millimeters>(Gm) << std::endl;
+    Gigameters<int> Gm{int(1)};
+    std::cout << unit_cast<Gigameters<int>, Millimeters<double>>(Gm) << std::endl;
 
-    Millimeters mm{double(10)};
-    Kilometers km1{mm};
+    Millimeters<double> mm{double(10)};
+    Kilometers<double> km1{mm};
     std::cout << "Init cast " << km1 << std::endl;
 
     Millimeters mm2 = mm;
     std::cout << "Init copy via assignment " << mm2 << std::endl; 
 
-    Kilometers km2{Millimeters{}};
+    Kilometers<double> km2{Millimeters<double>{}};
 
     // Kilometers km2 = mm;
     // std::cout << "Assignment init " << km2 << std::endl;

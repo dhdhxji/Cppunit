@@ -15,6 +15,10 @@ namespace CppUnit
                 using type = typename TUnit::BaseUnit;
             };
 
+            template <typename TUnit1, typename TUnit2>
+            struct IsUnitsSame : std::bool_constant<std::is_same<typename TUnit1::UnitType, typename TUnit2::UnitType>::value>
+            {};
+
             template <typename TUnit>
             struct GetRootBaseUnit
             {
@@ -37,7 +41,7 @@ namespace CppUnit
 
             template <typename TUnit1, typename TUnit2>
             struct IsUnitCompatible : std::bool_constant<
-                                          std::is_same<
+                                          IsUnitsSame<
                                               typename GetRootBaseUnit<TUnit1>::type,
                                               typename GetRootBaseUnit<TUnit2>::type>::value>
             {
@@ -67,7 +71,7 @@ namespace CppUnit
 
             public:
                 using type = typename std::conditional<
-                    std::is_same<BaseUnit, TTarget>::value,
+                    IsUnitsSame<BaseUnit, TTarget>::value,
                     typename TUnit::ConvPolicy,
                     WrapperPolicy>::type;
             };
@@ -89,7 +93,7 @@ namespace CppUnit
 
             public:
                 using type = typename std::conditional<
-                    std::is_same<TUnit, TargetBaseUnit>::value,
+                    IsUnitsSame<TUnit, TargetBaseUnit>::value,
                     typename TTarget::ConvPolicy,
                     WrapperPolicy>::type;
             };
