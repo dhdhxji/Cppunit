@@ -26,7 +26,7 @@ namespace CppUnit
                 template <typename TUnit>
                 struct Policy
                 {
-                    using BaseUnit_t = typename Util::GetBaseUnit<TUnit>::type;
+                    using BaseUnit_t = typename Util::GetBaseUnit<TUnit, true>::type;
 
                     static BaseUnit_t toBase(const TUnit &unit) { return BaseUnit_t::fromValue(unit.m_value / TRatio::den * TRatio::num); }
                     static TUnit fromBase(const BaseUnit_t &base) { return TUnit::fromValue(base.m_value / TRatio::num * TRatio::den); }

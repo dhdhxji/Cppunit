@@ -10,6 +10,8 @@ namespace CppUnit
     {
         namespace Core
         {
+            struct DummyUnitContainer {};
+
             template <typename T,
                       template <typename> typename TUnit,
                       template <typename> typename TBaseUnit,
@@ -17,31 +19,31 @@ namespace CppUnit
             struct Unit
             {
                 // Small hack to make units with different data types (like a Meters<double> and Millimeters<int> compatible)
-                using BaseUnit = TBaseUnit<int>;
-                using UnitType = TUnit<int>;
+                using BaseUnit = TBaseUnit<DummyUnitContainer>;
+                using UnitType = TUnit<DummyUnitContainer>;
                 using OwnBaseUnit = TBaseUnit<T>;
-                using OwnUnitTtype = TUnit<T>;
+                using OwnUnitType = TUnit<T>;
                 
-                using ConvPolicy = typename TConvPolicy::Policy<OwnUnitTtype>;
+                using ConvPolicy = typename TConvPolicy::Policy<OwnUnitType>;
 
                 T m_value;
 
                 Unit() = default;
                 Unit(const T &value) : m_value(value) {}
-                Unit(const OwnUnitTtype &other) : m_value(other.m_value) {}
+                Unit(const OwnUnitType &other) : m_value(other.m_value) {}
                 template <typename TOtherUnit>
-                Unit(const TOtherUnit &other) : m_value(Util::unit_cast<TOtherUnit, OwnUnitTtype>(other).m_value) {}
+                Unit(const TOtherUnit &other) : m_value(Util::unit_cast<TOtherUnit, OwnUnitType>(other).m_value) {}
 
                 template <typename TOtherUnit>
-                OwnUnitTtype &operator=(const TOtherUnit &other)
+                OwnUnitType &operator=(const TOtherUnit &other)
                 {
-                    m_value = Util::unit_cast<TOtherUnit, OwnUnitTtype>(other).m_value;
+                    m_value = Util::unit_cast<TOtherUnit, OwnUnitType>(other).m_value;
                     return *this;
                 }
 
-                static OwnUnitTtype fromValue(const T &value)
+                static OwnUnitType fromValue(const T &value)
                 {
-                    OwnUnitTtype unit;
+                    OwnUnitType unit;
                     unit.m_value = value;
 
                     return unit;
