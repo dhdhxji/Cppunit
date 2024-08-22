@@ -2,6 +2,7 @@
 #define UNIT_BASE_HPP
 
 #include "util.hpp"
+#include "composite.hpp"
 #include "base_conv_policies.hpp"
 
 namespace CppUnit
@@ -54,6 +55,18 @@ namespace CppUnit
                 T value()
                 {
                     return m_value;
+                }
+
+                template <typename TOtherUnit>
+                Composite::MultipliedUnit<OwnUnitType, TOtherUnit> operator*(const TOtherUnit &other)
+                {
+                    return Composite::MultipliedUnit<OwnUnitType, TOtherUnit>::fromValue(*this, other);
+                }
+
+                template <typename TOtherUnit>
+                Composite::DividedUnit<OwnUnitType, TOtherUnit> operator/(const TOtherUnit &other)
+                {
+                    return Composite::DividedUnit<OwnUnitType, TOtherUnit>::fromValue(*this, other);
                 }
             };
 

@@ -12,6 +12,16 @@ namespace CppUnit
     {
         namespace Composite
         {
+            template<typename, typename, template <typename> typename>
+            struct CompositeUnit;
+
+            template <typename TUnit1, typename TUnit2>
+            using MultipliedUnit = CompositeUnit<TUnit1, TUnit2, std::multiplies>;
+
+            template <typename TUnit1, typename TUnit2>
+            using DividedUnit = CompositeUnit<TUnit1, TUnit2, std::divides>;
+
+
             template <
                 typename TUnit1,
                 typename TUnit2,
@@ -39,25 +49,31 @@ namespace CppUnit
                 TUnit1 m_value1;
                 TUnit2 m_value2;
 
-                static OwnUnitType from_value(const TUnit1 &unit1, const TUnit2 &unit2)
+                static OwnUnitType fromValue(const TUnit1 &unit1, const TUnit2 &unit2)
                 {
-                    return OwnUnitType {
-                        unit1,
-                        unit2
-                    };
+                    OwnUnitType result;
+                    result.m_value1 = unit1;
+                    result.m_value2 = unit2;
+                    return result;
                 }
 
                 decltype(m_value1.value()) value()
                 {
                     return TOpFunctor()(m_value1.value(), m_value2.value());
                 }
+
+                template <typename TOtherUnit>
+                Composite::MultipliedUnit<OwnUnitType, TOtherUnit> operator*(const TOtherUnit &other)
+                {
+                    return Composite::MultipliedUnit<OwnUnitType, TOtherUnit>::fromValue(*this, other);
+                }
+
+                template <typename TOtherUnit>
+                Composite::DividedUnit<OwnUnitType, TOtherUnit> operator/(const TOtherUnit &other)
+                {
+                    return Composite::DividedUnit<OwnUnitType, TOtherUnit>::fromValue(*this, other);
+                }
             };
-
-            template <typename TUnit1, typename TUnit2>
-            using MultipliedUnit = CompositeUnit<TUnit1, TUnit2, std::multiplies>;
-
-            template <typename TUnit1, typename TUnit2>
-            using DividedUnit = CompositeUnit<TUnit1, TUnit2, std::divides>;
         }
 
         namespace Util
@@ -73,16 +89,13 @@ namespace CppUnit
             {
                 static inline Composite::CompositeUnit<Unit3, Unit4, TOpFunctor> cast(const Composite::CompositeUnit<Unit1, Unit2, TOpFunctor> &unit)
                 {
-                    return Composite::CompositeUnit<Unit3, Unit4, TOpFunctor>::from_value(
+                    return Composite::CompositeUnit<Unit3, Unit4, TOpFunctor>::fromValue(
                         unit_cast<Unit1, Unit3>(unit.m_value1),
                         unit_cast<Unit2, Unit4>(unit.m_value2)
                     );
                 }
             };
-        }
 
-        namespace Util
-        {
             template <
                 typename Unit1, 
                 typename Unit2, 
