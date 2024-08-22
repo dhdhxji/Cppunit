@@ -50,6 +50,11 @@ namespace CppUnit
                 }
 
                 operator T() { return m_value; }
+
+                T value()
+                {
+                    return m_value;
+                }
             };
 
             template <typename T, template <typename> typename TUnit>
