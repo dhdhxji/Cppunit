@@ -103,18 +103,33 @@ namespace CppUnit
             };
 
             template <typename TFrom, typename TTo>
+            struct UnitCaster
+            {
+                static inline TTo cast(const TFrom& unit)
+                {
+                    static_assert(IsUnitCompatible<TFrom, TTo>::value, "Units TFrom and TTo must have common base unit");
+
+                    using CommonBase1 = typename GetCommonBaseUnit<TFrom, TTo, true>::type1;
+                    using CommonBase2 = typename GetCommonBaseUnit<TFrom, TTo, true>::type2;
+
+                    // Units may have different container type, still, Meters<int> and Meters<double> are the same units which should be converted
+                    const CommonBase1 base1 = ToBaseCastRecursive<TFrom, CommonBase1>::type::toBase(unit);
+                    const CommonBase2 base2 = CommonBase2::fromValue(base1.m_value);
+
+                    return FromBaseCastRecursive<CommonBase2, TTo>::type::fromBase(base2);
+                }
+            };
+
+            template <typename T>
+            struct UnitCaster<T, T>
+            {
+                static inline T cast(const T& unit) {return unit;}
+            };
+
+            template <typename TFrom, typename TTo>
             TTo unit_cast(const TFrom &unit)
             {
-                static_assert(IsUnitCompatible<TFrom, TTo>::value, "Units TFrom and TTo must have common base unit");
-
-                using CommonBase1 = typename GetCommonBaseUnit<TFrom, TTo, true>::type1;
-                using CommonBase2 = typename GetCommonBaseUnit<TFrom, TTo, true>::type2;
-
-                // Units may have different container type, still, Meters<int> and Meters<double> are the same units which should be converted
-                const CommonBase1 base1 = ToBaseCastRecursive<TFrom, CommonBase1>::type::toBase(unit);
-                const CommonBase2 base2 = CommonBase2::fromValue(base1.m_value);
-
-                return FromBaseCastRecursive<CommonBase2, TTo>::type::fromBase(base2);
+                return UnitCaster<TFrom, TTo>::cast(unit);
             }
         }
     }
