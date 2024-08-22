@@ -2,6 +2,7 @@
 #define COMPOSITE_HPP
 
 #include <utility>
+#include <functional>
 #include "core.hpp"
 #include "util.hpp"
 
@@ -13,22 +14,27 @@ namespace CppUnit
         {
             template <
                 typename TUnit1,
-                typename TUnit2
+                typename TUnit2,
+                template <typename> typename TOpFunctor
             >
-            struct MultipliedUnit
+            struct CompositeUnit
             {
-                using BaseUnit = MultipliedUnit<
+                using BaseUnit = CompositeUnit<
                     typename Util::GetBaseUnit<TUnit1, false>::type, 
-                    typename Util::GetBaseUnit<TUnit2, false>::type>;
-                using UnitType = MultipliedUnit<
+                    typename Util::GetBaseUnit<TUnit2, false>::type,
+                    TOpFunctor>;
+                using UnitType = CompositeUnit<
                     typename TUnit1::UnitType, 
-                    typename TUnit2::UnitType>;
-                using OwnBaseUnit = MultipliedUnit<
+                    typename TUnit2::UnitType,
+                    TOpFunctor>;
+                using OwnBaseUnit = CompositeUnit<
                     typename Util::GetBaseUnit<TUnit1, true>::type, 
-                    typename Util::GetBaseUnit<TUnit2, true>::type>;
-                using OwnUnitType = MultipliedUnit<
+                    typename Util::GetBaseUnit<TUnit2, true>::type,
+                    TOpFunctor>;
+                using OwnUnitType = CompositeUnit<
                     typename TUnit1::OwnUnitType,
-                    typename TUnit2::OwnUnitType>;
+                    typename TUnit2::OwnUnitType,
+                    TOpFunctor>;
 
                 TUnit1 m_value1;
                 TUnit2 m_value2;
@@ -43,19 +49,31 @@ namespace CppUnit
 
                 decltype(m_value1.value()) value()
                 {
-                    return m_value1.value() * m_value2.value();
+                    return TOpFunctor()(m_value1.value(), m_value2.value());
                 }
             };
+
+            template <typename TUnit1, typename TUnit2>
+            using MultipliedUnit = CompositeUnit<TUnit1, TUnit2, std::multiplies>;
+
+            template <typename TUnit1, typename TUnit2>
+            using DividedUnit = CompositeUnit<TUnit1, TUnit2, std::divides>;
         }
 
         namespace Util
         {
-            template <typename Unit1, typename Unit2, typename Unit3, typename Unit4>
-            struct UnitCaster<Composite::MultipliedUnit<Unit1, Unit2>, Composite::MultipliedUnit<Unit3, Unit4>>
+            template <
+                typename Unit1, 
+                typename Unit2, 
+                typename Unit3, 
+                typename Unit4, 
+                template <typename> typename TOpFunctor
+            >
+            struct UnitCaster<Composite::CompositeUnit<Unit1, Unit2, TOpFunctor>, Composite::CompositeUnit<Unit3, Unit4, TOpFunctor>>
             {
-                static inline Composite::MultipliedUnit<Unit3, Unit4> cast(const Composite::MultipliedUnit<Unit1, Unit2> &unit)
+                static inline Composite::CompositeUnit<Unit3, Unit4, TOpFunctor> cast(const Composite::CompositeUnit<Unit1, Unit2, TOpFunctor> &unit)
                 {
-                    return Composite::MultipliedUnit<Unit3, Unit4>::from_value(
+                    return Composite::CompositeUnit<Unit3, Unit4, TOpFunctor>::from_value(
                         unit_cast<Unit1, Unit3>(unit.m_value1),
                         unit_cast<Unit2, Unit4>(unit.m_value2)
                     );
@@ -63,6 +81,21 @@ namespace CppUnit
             };
         }
 
+        namespace Util
+        {
+            template <
+                typename Unit1, 
+                typename Unit2, 
+                typename Unit3, 
+                typename Unit4, 
+                template <typename> typename TOpFunctor1,
+                template <typename> typename TOpFunctor2
+            >
+            struct UnitCaster<Composite::CompositeUnit<Unit1, Unit2, TOpFunctor1>, Composite::CompositeUnit<Unit3, Unit4, TOpFunctor2>>
+            {
+                static_assert("Error casting composite units with different Op");
+            };
+        }
     }
 }
 
